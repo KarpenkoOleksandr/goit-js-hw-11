@@ -52,7 +52,6 @@ function onSubmitForm(event) {
             if (data.totalHits > perPage) {
                 window.addEventListener('scroll', showLoadMorePage);
             };
-            scrollPage();
         })
         .catch(onFetchError);
 
@@ -75,22 +74,12 @@ function onClickLoadMore() {
                 window.removeEventListener('scroll', showLoadMorePage);
             };
             lightbox.refresh();
-            scrollPage();
         })
         .catch(onFetchError);
 };
 
 function onFetchError() {
     Notify.failure('Oops! Something went wrong! Try reloading the page or make another choice!', notiflixParams);
-};
-
-function scrollPage() {
-    const { height: cardHeight } = gallery.firstElementChild.getBoundingClientRect();
-
-    window.scrollBy({
-        top: cardHeight * 2,
-        behavior: "smooth",
-    });
 };
 
 function showLoadMorePage() {
