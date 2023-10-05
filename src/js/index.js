@@ -21,7 +21,7 @@ btnLoadMore.classList.add('is-hidden');
 
 searchForm.addEventListener('submit', onSubmitForm);
 
-function onSubmitForm(event) {
+async function onSubmitForm(event) {
     event.preventDefault();
 
     gallery.innerHTML = '';
@@ -37,50 +37,51 @@ function onSubmitForm(event) {
         Notify.info('Enter your request, please!', notiflixParams);
         return;
     }
+    event.currentTarget.reset();
+    try {
+        const data = await fetchPhoto(keyOfSearchPhoto, page, perPage);
+                const searchResults = data.hits;
+                if (data.totalHits === 0) {
+                    Notify.failure('Sorry, there are no images matching your search query. Please try again.', notiflixParams);
+                } else {
+                    Notify.info(`Hooray! We found ${data.totalHits} images.`, notiflixParams);
+                    createMarkup(searchResults);
+                    lightbox.refresh();
 
-    fetchPhoto(keyOfSearchPhoto, page, perPage)
-        .then(data => {
-            const searchResults = data.hits;
-            if (data.totalHits === 0) {
-                Notify.failure('Sorry, there are no images matching your search query. Please try again.', notiflixParams);
-            } else {
-                Notify.info(`Hooray! We found ${data.totalHits} images.`, notiflixParams);
-                createMarkup(searchResults);
-                lightbox.refresh();
-
-            };
-            if (data.totalHits > perPage) {
-                window.addEventListener('scroll', showLoadMorePage);
-            };
-        })
-        .catch(onFetchError);
+                };
+                if (data.totalHits > perPage) {
+                    window.addEventListener('scroll', showLoadMorePage);
+                };
+    } catch (error) {
+        Notify.failure('Oops! Something went wrong! Try reloading the page or make another choice!', notiflixParams);
+    };
 
     btnLoadMore.addEventListener('click', onClickLoadMore);
 
-    event.currentTarget.reset();
+    // event.currentTarget.reset();
 };
 
-function onClickLoadMore() {
+async function onClickLoadMore() {
     page += 1;
-    fetchPhoto(keyOfSearchPhoto, page, perPage)
-        .then(data => {
+    try {
+        const data = await fetchPhoto(keyOfSearchPhoto, page, perPage);
             const searchResults = data.hits;
             const numberOfPage = Math.ceil(data.totalHits / perPage);
-            
             createMarkup(searchResults);
             if (page === numberOfPage) {
-                Notify.info("We're sorry, but you've reached the end of search results.", notiflixParams);
-                btnLoadMore.removeEventListener('click', onClickLoadMore);
-                window.removeEventListener('scroll', showLoadMorePage);
+            Notify.info("We're sorry, but you've reached the end of search results.", notiflixParams);
+            btnLoadMore.removeEventListener('click', onClickLoadMore);
+            window.removeEventListener('scroll', showLoadMorePage);
             };
             lightbox.refresh();
-        })
-        .catch(onFetchError);
+    } catch (error) {
+        Notify.failure('Oops! Something went wrong! Try reloading the page or make another choice!', notiflixParams);
+    };
 };
 
-function onFetchError() {
-    Notify.failure('Oops! Something went wrong! Try reloading the page or make another choice!', notiflixParams);
-};
+// function onFetchError() {
+//     Notify.failure('Oops! Something went wrong! Try reloading the page or make another choice!', notiflixParams);
+// };
 
 function showLoadMorePage() {
     if (checkIfEndOfPage()) {
